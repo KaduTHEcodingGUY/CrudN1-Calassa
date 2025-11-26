@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciador de Alunos</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: #1f2125;
+      color: #eaecef;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 48px auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* centraliza horizontalmente */
+    }
+    h1 {
+      margin: 0 0 16px 0;
+      text-align: center;
+      letter-spacing: 0.2px;
+    }
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .logout-btn {
+      background: #dc2626;
+      border-color: #b91c1c;
+      padding: 8px 16px;
+      height: auto;
+      font-size: 14px;
+    }
+    .card {
+      background: #2a2d33;
+      border: 1px solid #3a3f47;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.25);
+      width: 100%;
+    }
+    .stack { display: grid; gap: 20px; }
+    form#create-form { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr 0.8fr auto; gap: 14px; }
+    .actions-row { display: flex; gap: 8px; align-items: center; }
+    input, button {
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid #424955;
+      background: #1b1d21;
+      color: #f2f4f8;
+      padding: 0 12px;
+    }
+    input:focus { outline: 2px solid #6366f1; border-color: #6366f1; }
+    button {
+      background: #3b82f6;
+      border: 1px solid #2f69c7;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { filter: brightness(1.05); }
+    button.secondary { background: #374151; border-color: #2f3540; }
+    .toolbar { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; }
+    .table-wrapper { width: 100%; max-height: 75vh; overflow-y: auto; overflow-x: hidden; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1b1d21;
+      border: 1px solid #3a3f47;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.25);
+      table-layout: fixed; /* impedir scroll horizontal */
+    }
+    thead { background: #111317; }
+    th, td {
+      padding: 16px 18px;
+      text-align: left;
+      border-bottom: 1px solid #2c3138;
+      vertical-align: middle;
+    }
+    tbody tr { min-height: 52px; }
+    tbody tr:hover { background: #202329; }
+    td input {
+      width: 100%;
+      max-width: 100%;
+      height: 42px;
+      padding: 10px 12px;
+    }
+    td input { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: inherit; font-size: 14px; }
+
+    td input[data-field="nome"] { min-width: 220px; }
+    td input[data-field="matricula"], td input[data-field="turno"], td input[data-field="turma"] { min-width: 160px; }
+    td input[data-field="escola"] { min-width: 220px; }
+    .row-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    /* largura da coluna Email */
+    th:nth-child(3), td:nth-child(3) {
+      width: 300px;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* largura da coluna Matrícula */
+    th:nth-child(4), td:nth-child(4) {
+      width: 200px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Modal */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .overlay.show { display: flex; }
+    .modal { width: 720px; max-width: 92vw; background: #2a2d33; border: 1px solid #3a3f47; border-radius: 12px; padding: 20px; box-shadow: 0 10px 24px rgba(0,0,0,0.45); }
+    .modal h2 { margin: 0 0 12px 0; font-size: 18px; text-align: center; }
+    .modal form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal .full { grid-column: 1 / -1; }
+    .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container stack">
+    <div class="header-actions">
+      <h1 style="margin: 0;">Gerenciador de Alunos</h1>
+      <button id="logout-btn" class="logout-btn">Sair</button>
+    </div>
+
+    <div class="card stack">
+      <form id="create-form">
+        <input id="nome" placeholder="Nome" required />
+        <input id="email" placeholder="Email" required />
+        <input id="matricula" placeholder="Matrícula" required />
+        <input id="escola" placeholder="Escola" />
+        <input id="turma" placeholder="Turma" />
+        <input id="turno" placeholder="Turno" />
+        <button type="submit">Criar</button>
+      </form>
+
+      <div class="toolbar">
+        <input id="search" placeholder="Buscar por nome ou email" />
+        <button id="search-btn" class="secondary">Buscar</button>
+        <button id="clear-btn" class="secondary">Limpar</button>
+      </div>
+    </div>
+
+    <div class="card table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Matrícula</th>
+            <th>Escola</th>
+            <th>Turma</th>
+            <th>Turno</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="edit-overlay" class="overlay" aria-hidden="true">
+    <div class="modal">
+      <h2>Editar Aluno</h2>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id" />
+        <input id="edit-nome" placeholder="Nome" />
+        <input id="edit-email" placeholder="Email" />
+        <input id="edit-matricula" placeholder="Matrícula" />
+        <input id="edit-escola" placeholder="Escola" />
+        <input id="edit-turma" placeholder="Turma" />
+        <input id="edit-turno" placeholder="Turno" />
+        <div class="actions full">
+          <button type="button" id="edit-cancel" class="secondary">Cancelar</button>
+          <button type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const api = '/api/alunos';
+
+    // Verificar autenticação ao carregar a página
+    function checkAuth() {
+      const token = localStorage.getItem('access_token');
+      const expiryTime = localStorage.getItem('token_expiry');
+      
+      if (!token || (expiryTime && Date.now() >= parseInt(expiryTime))) {
+        // Token não existe ou expirou, redirecionar para login
+        if (expiryTime && Date.now() >= parseInt(expiryTime)) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('token_type');
+          localStorage.removeItem('token_expiry');
+        }
+        window.location.href = '/login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // Função para obter headers com autenticação
+    function getAuthHeaders() {
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `${tokenType} ${token}`
+      };
+    }
+
+    // Verificar autenticação antes de continuar
+    if (!checkAuth()) {
+      // A função já redireciona, mas paramos a execução aqui
+      throw new Error('Não autenticado');
+    }
+
+    async function load(query = '') {
+      const url = query ? `${api}?q=${encodeURIComponent(query)}` : api;
+      const res = await fetch(url, {
+        headers: getAuthHeaders()
+      });
+      
+      if (res.status === 401) {
+        // Token inválido, fazer logout e redirecionar
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('token_type');
+        localStorage.removeItem('token_expiry');
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      const data = await res.json();
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = '';
+      data.forEach(u => tbody.appendChild(renderRow(u)));
+    }
+
+    function renderRow(u) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.id}</td>
+        <td><span class="cell-text">${u.nome ?? ''}</span></td>
+        <td><span class="cell-text">${u.email ?? ''}</span></td>
+        <td><span class="cell-text">${u.matricula ?? ''}</span></td>
+        <td><span class="cell-text">${u.escola ?? ''}</span></td>
+        <td><span class="cell-text">${u.turma ?? ''}</span></td>
+        <td><span class="cell-text">${u.turno ?? ''}</span></td>
+        <td>
+          <div class="row-actions">
+            <button data-action="edit" data-id="${u.id}" data-payload='${JSON.stringify(u).replace(/'/g, "&apos;")}'>Editar</button>
+            <button data-action="delete" data-id="${u.id}">Excluir</button>
+          </div>
+        </td>
+      `;
+      return tr;
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const matricula = document.getElementById('matricula').value.trim();
+      const escola = document.getElementById('escola').value.trim();
+      const turma = document.getElementById('turma').value.trim();
+      const turno = document.getElementById('turno').value.trim();
+      if (!nome || !email || !matricula) return;
+      const res = await fetch(api, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ nome, email, matricula, escola, turma, turno })
+      });
+      if (!res.ok) {
+        alert('Erro ao criar: ' + (await res.text()));
+        return;
+      }
+      document.getElementById('nome').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('matricula').value = '';
+      document.getElementById('escola').value = '';
+      document.getElementById('turma').value = '';
+      document.getElementById('turno').value = '';
+      await load();
+    });
+
+    document.getElementById('rows').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const id = btn.getAttribute('data-id');
+      const action = btn.getAttribute('data-action');
+      if (action === 'delete') {
+        const res = await fetch(`${api}/${id}`, { 
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
+        if (res.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('token_type');
+          localStorage.removeItem('token_expiry');
+          window.location.href = '/login.html';
+          return;
+        }
+        if (!res.ok) { alert('Erro ao excluir'); return; }
+        await load();
+      } else if (action === 'edit') {
+        const data = JSON.parse(btn.getAttribute('data-payload'));
+        openEditModal(data);
+      }
+    });
+
+    function openEditModal(u) {
+      document.getElementById('edit-id').value = u.id;
+      document.getElementById('edit-nome').value = u.nome ?? '';
+      document.getElementById('edit-email').value = u.email ?? '';
+      document.getElementById('edit-matricula').value = u.matricula ?? '';
+      document.getElementById('edit-escola').value = u.escola ?? '';
+      document.getElementById('edit-turma').value = u.turma ?? '';
+      document.getElementById('edit-turno').value = u.turno ?? '';
+      document.getElementById('edit-overlay').classList.add('show');
+      document.getElementById('edit-overlay').setAttribute('aria-hidden', 'false');
+    }
+
+    document.getElementById('edit-cancel').addEventListener('click', () => {
+      document.getElementById('edit-overlay').classList.remove('show');
+      document.getElementById('edit-overlay').setAttribute('aria-hidden', 'true');
+    });
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const body = {
+        nome: document.getElementById('edit-nome').value.trim(),
+        email: document.getElementById('edit-email').value.trim(),
+        matricula: document.getElementById('edit-matricula').value.trim(),
+        escola: document.getElementById('edit-escola').value.trim(),
+        turma: document.getElementById('edit-turma').value.trim(),
+        turno: document.getElementById('edit-turno').value.trim()
+      };
+      const res = await fetch(`${api}/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      });
+      
+      if (res.status === 401) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('token_type');
+        localStorage.removeItem('token_expiry');
+        window.location.href = '/login.html';
+        return;
+      }
+      if (!res.ok) { alert('Erro ao salvar'); return; }
+      document.getElementById('edit-overlay').classList.remove('show');
+      document.getElementById('edit-overlay').setAttribute('aria-hidden', 'true');
+      await load();
+    });
+
+    document.getElementById('search-btn').addEventListener('click', async () => {
+      const q = document.getElementById('search').value.trim();
+      await load(q);
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', async () => {
+      document.getElementById('search').value = '';
+      await load();
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('token_type');
+      localStorage.removeItem('token_expiry');
+      window.location.href = '/login.html';
+    });
+
+    load();
+  </script>
+  
+</body>
+</html>

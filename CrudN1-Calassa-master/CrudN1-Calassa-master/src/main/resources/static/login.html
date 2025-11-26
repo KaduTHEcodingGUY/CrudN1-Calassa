@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Gerenciador de Alunos</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1f2125;
+      padding: 24px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: #eaecef;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .card {
+      background: #2a2d33;
+      border: 1px solid #3a3f47;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      font-size: 42px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #eaecef;
+      margin: 0 0 6px 0;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #9ca3af;
+      margin: 0;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #9ca3af;
+    }
+
+    input {
+      height: 44px;
+      padding: 0 14px;
+      font-size: 14px;
+      border: 1px solid #424955;
+      border-radius: 8px;
+      background: #1b1d21;
+      color: #f2f4f8;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    input:focus {
+      outline: 2px solid #6366f1;
+      border-color: #6366f1;
+    }
+
+    input:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    input::placeholder {
+      color: #6b7280;
+    }
+
+    .btn {
+      height: 44px;
+      padding: 0 16px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: #3b82f6;
+      border: 1px solid #2f69c7;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+      margin-top: 4px;
+    }
+
+    .btn:hover:not(:disabled) {
+      filter: brightness(1.08);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-box {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #7f1d1d;
+      border: 1px solid #991b1b;
+      border-radius: 8px;
+      color: #fca5a5;
+      font-size: 14px;
+    }
+
+    .error-box.show {
+      display: flex;
+    }
+
+    .error-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: #dc2626;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .success-box {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #14532d;
+      border: 1px solid #166534;
+      border-radius: 8px;
+      color: #86efac;
+      font-size: 14px;
+    }
+
+    .success-box.show {
+      display: flex;
+    }
+
+    .success-icon-small {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: #16a34a;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #3a3f47;
+    }
+
+    .footer-text {
+      font-size: 14px;
+      color: #9ca3af;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: #3b82f6;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+    }
+
+    .link-btn:hover {
+      color: #60a5fa;
+      text-decoration: underline;
+    }
+
+    .loading-text {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Tela de sucesso */
+    .success-screen {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .success-icon-big {
+      width: 64px;
+      height: 64px;
+      background: #16a34a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 32px;
+      color: #fff;
+    }
+
+    .success-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #eaecef;
+      margin: 0 0 10px 0;
+    }
+
+    .success-text {
+      font-size: 14px;
+      color: #9ca3af;
+      margin: 0 0 24px 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="card">
+      <!-- Tela de Login -->
+      <div id="login-view">
+        <div class="header">
+          <div class="logo">🎓</div>
+          <h1>Gerenciador de Alunos</h1>
+          <p class="subtitle">Entre com suas credenciais</p>
+        </div>
+
+        <form id="login-form" class="form">
+          <div id="login-error" class="error-box">
+            <span class="error-icon">!</span>
+            <span id="login-error-text"></span>
+          </div>
+
+          <div class="input-group">
+            <label for="login-email">Email</label>
+            <input 
+              type="email" 
+              id="login-email" 
+              name="email" 
+              placeholder="seu@email.com" 
+              required 
+              autocomplete="email"
+            />
+          </div>
+          
+          <div class="input-group">
+            <label for="login-password">Senha</label>
+            <input 
+              type="password" 
+              id="login-password" 
+              name="password" 
+              placeholder="••••••••" 
+              required 
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" id="login-btn" class="btn">Entrar</button>
+        </form>
+
+        <div class="footer">
+          <span class="footer-text">Não tem uma conta?</span>
+          <button type="button" id="show-register" class="link-btn">Criar Conta</button>
+        </div>
+      </div>
+
+      <!-- Tela de Cadastro -->
+      <div id="register-view" class="hidden">
+        <div class="header">
+          <div class="logo">📝</div>
+          <h1>Criar Conta</h1>
+          <p class="subtitle">Preencha os dados para se cadastrar</p>
+        </div>
+
+        <form id="register-form" class="form">
+          <div id="register-error" class="error-box">
+            <span class="error-icon">!</span>
+            <span id="register-error-text"></span>
+          </div>
+
+          <div class="input-group">
+            <label for="register-email">Email</label>
+            <input 
+              type="email" 
+              id="register-email" 
+              name="email" 
+              placeholder="seu@email.com" 
+              required 
+              autocomplete="email"
+            />
+          </div>
+          
+          <div class="input-group">
+            <label for="register-password">Senha</label>
+            <input 
+              type="password" 
+              id="register-password" 
+              name="password" 
+              placeholder="Mínimo 6 caracteres" 
+              required 
+              autocomplete="new-password"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="register-confirm">Confirmar Senha</label>
+            <input 
+              type="password" 
+              id="register-confirm" 
+              name="confirmPassword" 
+              placeholder="Repita a senha" 
+              required 
+              autocomplete="new-password"
+            />
+          </div>
+
+          <button type="submit" id="register-btn" class="btn">Criar Conta</button>
+        </form>
+
+        <div class="footer">
+          <span class="footer-text">Já tem uma conta?</span>
+          <button type="button" id="show-login" class="link-btn">Fazer Login</button>
+        </div>
+      </div>
+
+      <!-- Tela de Sucesso -->
+      <div id="success-view" class="hidden">
+        <div class="success-screen">
+          <div class="success-icon-big">✓</div>
+          <h2 class="success-title">Cadastro Realizado!</h2>
+          <p class="success-text">Sua conta foi criada com sucesso.</p>
+          <button type="button" id="go-to-login" class="btn">Ir para Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuração do Auth Server
+    const AUTH_SERVER_URL = 'http://localhost:8082/auth-server';
+
+    // Elementos
+    const loginView = document.getElementById('login-view');
+    const registerView = document.getElementById('register-view');
+    const successView = document.getElementById('success-view');
+
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    const loginError = document.getElementById('login-error');
+    const loginErrorText = document.getElementById('login-error-text');
+    const registerError = document.getElementById('register-error');
+    const registerErrorText = document.getElementById('register-error-text');
+
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+
+    // Navegação entre views
+    document.getElementById('show-register').addEventListener('click', () => {
+      loginView.classList.add('hidden');
+      registerView.classList.remove('hidden');
+      successView.classList.add('hidden');
+      hideAllMessages();
+      registerForm.reset();
+    });
+
+    document.getElementById('show-login').addEventListener('click', () => {
+      loginView.classList.remove('hidden');
+      registerView.classList.add('hidden');
+      successView.classList.add('hidden');
+      hideAllMessages();
+      loginForm.reset();
+    });
+
+    document.getElementById('go-to-login').addEventListener('click', () => {
+      loginView.classList.remove('hidden');
+      registerView.classList.add('hidden');
+      successView.classList.add('hidden');
+      hideAllMessages();
+      loginForm.reset();
+    });
+
+    function hideAllMessages() {
+      loginError.classList.remove('show');
+      registerError.classList.remove('show');
+    }
+
+    function showLoginError(message) {
+      loginErrorText.textContent = message;
+      loginError.classList.add('show');
+    }
+
+    function showRegisterError(message) {
+      registerErrorText.textContent = message;
+      registerError.classList.add('show');
+    }
+
+    // Login
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAllMessages();
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!email || !password) {
+        showLoginError('Email e senha são obrigatórios');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<span class="loading-text"><span class="spinner"></span>Entrando...</span>';
+
+      try {
+        // 1. Fazer login no auth-server
+        const loginResponse = await fetch(`${AUTH_SERVER_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const loginData = await loginResponse.json();
+
+        if (!loginResponse.ok) {
+          throw new Error(loginData.message || 'Email ou senha inválidos');
+        }
+
+        // 2. Salvar token
+        localStorage.setItem('access_token', loginData.access_token);
+        if (loginData.token_type) {
+          localStorage.setItem('token_type', loginData.token_type);
+        }
+        if (loginData.expires_in) {
+          const expiryTime = Date.now() + (loginData.expires_in * 1000);
+          localStorage.setItem('token_expiry', expiryTime.toString());
+        }
+
+        // 3. Tentar buscar dados do usuário
+        try {
+          const userResponse = await fetch(`${AUTH_SERVER_URL}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${loginData.access_token}` }
+          });
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (err) {
+          console.log('Não foi possível buscar dados do usuário');
+        }
+
+        // 4. Redirecionar
+        window.location.href = '/index.html';
+
+      } catch (err) {
+        showLoginError(err.message || 'Erro ao conectar com o servidor');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Entrar';
+      }
+    });
+
+    // Cadastro
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAllMessages();
+
+      const email = document.getElementById('register-email').value.trim();
+      const password = document.getElementById('register-password').value;
+      const confirmPassword = document.getElementById('register-confirm').value;
+
+      // Validações
+      if (!email || !password || !confirmPassword) {
+        showRegisterError('Todos os campos são obrigatórios');
+        return;
+      }
+
+      if (!email.includes('@')) {
+        showRegisterError('Email inválido');
+        return;
+      }
+
+      if (password.length < 6) {
+        showRegisterError('A senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showRegisterError('As senhas não conferem');
+        return;
+      }
+
+      registerBtn.disabled = true;
+      registerBtn.innerHTML = '<span class="loading-text"><span class="spinner"></span>Cadastrando...</span>';
+
+      try {
+        const response = await fetch(`${AUTH_SERVER_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, roles: 'USER' })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Erro ao cadastrar usuário');
+        }
+
+        // Mostrar tela de sucesso
+        loginView.classList.add('hidden');
+        registerView.classList.add('hidden');
+        successView.classList.remove('hidden');
+
+      } catch (err) {
+        showRegisterError(err.message || 'Erro ao conectar com o servidor');
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Criar Conta';
+      }
+    });
+
+    // Verificar se já está autenticado
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      const expiryTime = localStorage.getItem('token_expiry');
+      if (!expiryTime || Date.now() < parseInt(expiryTime)) {
+        window.location.href = '/index.html';
+      } else {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('token_type');
+        localStorage.removeItem('token_expiry');
+        localStorage.removeItem('user');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /auth-server
+
+spring:
+  application:
+    name: auth-server
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authBanco
+    username: postgres
+    password: 102030 # Em produção, use variáveis de ambiente!
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# Configurações de Log para Debugar OAuth
+logging:
+  level:
+    org.springframework.security: DEBUG

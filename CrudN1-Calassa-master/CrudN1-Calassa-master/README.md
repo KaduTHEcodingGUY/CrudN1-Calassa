@@ -1,89 +1,181 @@
-# CrudN1-Calassa
+# 🎓 CrudN1-Calassa - Gerenciador de Alunos
 
-Visão Geral da Aplicação
-A aplicação é um sistema de Gerenciamento de Alunos que permite criar, ler, atualizar e excluir registros de alunos. Ela utiliza as seguintes tecnologias:
+Sistema CRUD para gerenciamento de alunos desenvolvido com **Spring Boot** e frontend **HTML/CSS/JavaScript**.
 
-Backend: Spring Boot, um framework Java que simplifica o desenvolvimento de aplicações web e microserviços.
+## 📋 Funcionalidades
 
-Acesso a Dados: Spring Data JPA, que facilita a implementação de camadas de acesso a dados.
+- ✅ **Cadastro de usuários** (email e senha)
+- ✅ **Login com autenticação JWT**
+- ✅ **CRUD completo de alunos** (Criar, Ler, Atualizar, Deletar)
+- ✅ **Busca por nome ou email**
+- ✅ **Interface responsiva** com design moderno escuro
 
-Banco de Dados: PostgreSQL, hospedado no Supabase.
+## 🏗️ Arquitetura
 
-Frontend: HTML, CSS e JavaScript, criando uma interface de usuário de página única para interagir com o backend.
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Frontend      │────▶│   Auth Server   │     │   PostgreSQL    │
+│   (HTML/JS)     │     │   (porta 8082)  │     │   (Supabase)    │
+└────────┬────────┘     └─────────────────┘     └────────▲────────┘
+         │                                               │
+         │              ┌─────────────────┐              │
+         └─────────────▶│   Backend API   │──────────────┘
+                        │   (porta 8081)  │
+                        └─────────────────┘
+```
 
-Estrutura do Projeto
-O projeto segue a estrutura padrão de uma aplicação Spring Boot:
+## 🔐 Auth Server
 
-src/main/java: Contém o código-fonte da aplicação.
+Este projeto depende de um **Auth Server** externo para autenticação. O auth-server deve estar rodando em:
 
-com.example.CrudN1: Pacote principal.
+```
+http://localhost:8082/auth-server
+```
 
-CrudN1Application.java: Ponto de entrada da aplicação Spring Boot.
+### Endpoints do Auth Server utilizados:
 
-controller: Contém as classes que expõem os endpoints da API REST (AlunoController).
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/auth/login` | Login de usuário |
+| `POST` | `/auth/register` | Cadastro de novo usuário |
+| `GET` | `/auth/me` | Dados do usuário autenticado |
+| `GET` | `/oauth2/jwks` | Chaves públicas para validação JWT |
 
-model: Define as entidades do banco de dados (Aluno e User).
+### Formato das requisições:
 
-repository: Interfaces para acesso ao banco de dados (AlunoRepository e UserRepository).
+**Login:**
+```json
+POST /auth/login
+{
+  "email": "usuario@email.com",
+  "password": "senha123"
+}
+```
 
-src/main/resources: Contém os arquivos de configuração e estáticos.
+**Cadastro:**
+```json
+POST /auth/register
+{
+  "email": "usuario@email.com",
+  "password": "senha123",
+  "roles": "USER"
+}
+```
 
-application.properties: Arquivo de configuração da aplicação.
+## 🚀 Como Executar
 
-static/index.html: A interface do usuário da aplicação.
+### Pré-requisitos
 
-pom.xml: Define as dependências do projeto e as configurações de build do Maven.
+- Java 21+
+- Maven 3.8+
+- Auth Server rodando na porta 8082
 
-Backend
-Modelos de Dados
-Aluno.java: Representa um aluno com os seguintes campos: id, createdAt, nome, email, matricula, telefone, escola, turma e turno.
+### 1. Clone o repositório
 
-User.java: Embora exista um modelo de User, parece ser um resquício ou uma funcionalidade não totalmente implementada, já que o foco principal é o CRUD de Aluno.
+```bash
+git clone https://github.com/KaduTHEcodingGUY/CrudN1-Calassa.git
+cd CrudN1-Calassa
+```
 
-Repositórios
-AlunoRepository.java: Estende JpaRepository, fornecendo métodos para operações de banco de dados no Aluno, como existsByEmail, existsByMatricula, e uma busca customizada por nome ou email.
+### 2. Inicie o Auth Server
 
-UserRepository.java: Semelhante ao AlunoRepository, fornece operações de banco de dados para a entidade User.
+Certifique-se de que o Auth Server está rodando em `http://localhost:8082/auth-server`
 
-Controlador
-AlunoController.java: Expõe uma API REST para o gerenciamento de alunos:
+### 3. Execute a aplicação
 
-GET /api/alunos: Lista todos os alunos ou filtra por nome/email.
+```bash
+mvn spring-boot:run
+```
 
-GET /api/alunos/{id}: Obtém um aluno por ID.
+Ou via IDE (IntelliJ, Eclipse, VS Code):
+- Execute a classe `CrudN1Application.java`
 
-POST /api/alunos: Cria um novo aluno, com validação para campos obrigatórios e checagem de email e matrícula duplicados.
+### 4. Acesse a aplicação
 
-PUT /api/alunos/{id}: Atualiza os dados de um aluno existente.
+- **Login:** http://localhost:8081/login.html
+- **CRUD:** http://localhost:8081/index.html (requer autenticação)
 
-DELETE /api/alunos/{id}: Exclui um aluno.
+## 📁 Estrutura do Projeto
 
-Frontend
-O arquivo index.html contém a interface do usuário e a lógica para interagir com a API do backend:
+```
+src/main/
+├── java/com/example/CrudN1/
+│   ├── config/
+│   │   └── SecurityConfig.java      # Configuração de segurança
+│   ├── controller/
+│   │   ├── AlunoController.java     # API REST de alunos
+│   │   ├── AuthController.java      # Proxy para auth (opcional)
+│   │   └── UserController.java      # Gerenciamento de usuários
+│   ├── model/
+│   │   ├── Aluno.java               # Entidade Aluno
+│   │   └── User.java                # Entidade User
+│   ├── repository/
+│   │   ├── AlunoRepository.java     # Repositório de alunos
+│   │   └── UserRepository.java      # Repositório de usuários
+│   ├── service/
+│   │   └── AuthService.java         # Serviço de autenticação
+│   └── CrudN1Application.java       # Classe principal
+└── resources/
+    ├── static/
+    │   ├── index.html               # Tela do CRUD
+    │   └── login.html               # Tela de Login/Cadastro
+    └── application.properties       # Configurações
+```
 
-Interface: A página exibe um formulário para criar novos alunos, um campo de busca e uma tabela para listar os alunos.
+## 🔧 Configuração
 
-Funcionalidades:
+### application.properties
 
-Criação: O formulário envia uma requisição POST para /api/alunos.
+```properties
+# Porta da aplicação
+server.port=8081
 
-Listagem e Busca: A tabela é preenchida com os dados dos alunos, e a busca filtra os resultados.
+# Auth Server URL
+auth.server.url=http://localhost:8082/auth-server
 
-Edição: Um modal é aberto para editar os dados de um aluno, enviando uma requisição PUT.
+# Validação JWT
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8082/auth-server/oauth2/jwks
+```
 
-Exclusão: Um botão em cada linha da tabela permite excluir o aluno correspondente com uma requisição DELETE.
+## 🛡️ Segurança
 
-Estilo: A página tem um tema escuro e um design limpo e moderno.
+- **Autenticação:** JWT Bearer Token
+- **Validação:** Tokens são validados usando JWK do Auth Server
+- **Endpoints públicos:** `/login.html`, `/api/auth/**`
+- **Endpoints protegidos:** `/api/alunos/**` (requer token válido)
 
-Configuração
-O arquivo application.properties define as configurações da aplicação, incluindo:
+## 📱 Telas
 
-Nome da Aplicação: CrudN1
+### Login
+- Campo de email e senha
+- Botão para criar conta
+- Validação de campos
 
-Fonte de Dados: Configura a conexão com um banco de dados PostgreSQL no Supabase.
+### Cadastro
+- Email, senha e confirmação de senha
+- Validação de senha (mínimo 6 caracteres)
+- Redirecionamento automático para login após sucesso
 
-JPA/Hibernate: ddl-auto=update permite que o Hibernate atualize o esquema do banco de dados automaticamente.
+### CRUD de Alunos
+- Tabela com todos os alunos
+- Formulário de criação
+- Busca por nome/email
+- Edição inline
+- Exclusão com confirmação
+- Botão de logout
 
-Porta do Servidor: A aplicação roda na porta 8081.
+## 🛠️ Tecnologias
 
-Em resumo, o projeto é uma aplicação web completa, bem estruturada, que demonstra as funcionalidades básicas de um sistema CRUD. Ele utiliza tecnologias modernas e segue as melhores práticas de desenvolvimento com o ecossistema Spring.
+- **Backend:** Spring Boot 3.3.5
+- **Segurança:** Spring Security + OAuth2 Resource Server
+- **Banco de Dados:** PostgreSQL (Supabase)
+- **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
+- **Build:** Maven
+
+## 👤 Autor
+
+**KaduTHEcodingGUY**
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
